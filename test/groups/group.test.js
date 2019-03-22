@@ -45,15 +45,14 @@ describe('Initialize the CometChat and login', function () {
             let limit = 5,
                 groupRequest = new CometChat.GroupsRequestBuilder().setLimit(limit).build();
             return groupRequest.fetchNext().then(groupList => {
-                console.log(groupList.length);
+                    expect(groupList).to.be.an.instanceof(Array);
             })
         });
 
         it("Get the group list with invalid/no limit", function () {
             let limit = 0,
                 groupRequest = new CometChat.GroupsRequestBuilder().setLimit(limit).build();
-            return groupRequest.fetchNext().then(groupList => {
-                console.log(groupList.length);
+            return groupRequest.fetchNext().then(groupList => {                
             }, error => {
                 console.log(error);
                 expect(error).to.be.instanceof(CometChat.CometChatException);
