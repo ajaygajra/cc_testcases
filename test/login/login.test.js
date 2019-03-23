@@ -29,26 +29,34 @@ const appId = "1089f54cd9e81d",
 
 
 describe("Login test cases", function () {
-    describe("Login with userId and apiKey", function () {
-        this.timeout(100000);
+    this.timeout(100000);    
+    describe("Login with userId and apiKey", function () {        
         before(async function () {
-            if(!CometChat.isInitialized())
+            if (!CometChat.isInitialized())
                 await CometChat.init(appId);
 
             expect(CometChat.isInitialized()).to.be.true;
         });
 
-        it('Should fail on blank userid', function () {
+           it("Should not login with false authToken", function () {
+               return CometChat.login("","").then(user => {
+                   expect(user).to.not.exist();
+               }, error => {
+                   console.log(error);
+                   expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.equal('MISSING_PARAMETERS');
+               });
+           });
+
+        it('Should return an error on blank userid', function () {
             return CometChat.login('', apiKey).then(user => {
                 expect(user).to.not.exist;
             }, error => {
-
                 expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.equal('MISSING_PARAMETERS');
             });
         });
 
-        it('Login should faile on blank apiKey', function () {
-            CometChat.login(uid, '').then(user => {
+        it('Should return an error on blank apiKey', function () {
+           return  CometChat.login(uid, '').then(user => {
                 expect(user).to.not.exist();
             }, error => {
 
@@ -56,8 +64,8 @@ describe("Login test cases", function () {
             })
         });
 
-        it('Login should faile on invalid uid', function () {
-            CometChat.login(invalidUid, apiKey).then(user => {
+        it('Should return an error on invalid UID', function () {
+           return CometChat.login(invalidUid, apiKey).then(user => {
                 expect(user).to.not.exist();
             }, error => {
 
@@ -65,8 +73,8 @@ describe("Login test cases", function () {
             });
         });
 
-        it('Login should faile on invalid apiKey', function () {
-            CometChat.login(uid, invalidApiKey).then(user => {
+        it('Should return an error on invalid apiKey', function () {
+            return  CometChat.login(uid, invalidApiKey).then(user => {
                 expect(user).to.not.exist();
             }, error => {
 
@@ -74,7 +82,7 @@ describe("Login test cases", function () {
             })
         });
 
-        it('Login should faile on invalid uid & apiKey', function () {
+        it('should return error on invalida UID and invalid apiKey', function () {
             return CometChat.login(invalidUid, invalidApiKey).then(user => {
                 expect(user).to.not.exist();
             }, error => {
@@ -82,7 +90,7 @@ describe("Login test cases", function () {
             })
         });
 
-        it("Successful login to CometChat", function () {
+        it("Should retyurn CometChat.user", function () {
             return CometChat.login(uid, apiKey).then(user => {
                 expect(user).to.be.an.instanceof(CometChat.User);
             }, error => {
@@ -102,27 +110,48 @@ describe("Login test cases", function () {
         })
     });
 
-    describe.skip("Login with authToken", function () {        
+    describe("Login with authToken", function () {
 
         before(async function () {
             await CometChat.init(appId);
             expect(CometChat.isInitialized()).to.be.true;
         });
-        
+
         it("Should not login with false authToken", function () {
-            CometChat.login("authToken").then(user => {
+            return  CometChat.login("").then(user => {
+                expect(user).to.not.exist();
+            }, error => {
+                console.log(error);
+                expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.equal('MISSING_PARAMETERS');
+            });
+        });
+        it("Should not login with false authToken", function () {
+            return CometChat.login("authToken").then(user => {
                 expect(user).to.not.exist();
             }, error => {                
-                expect(error).to.be.an.instanceof(CometChat.CometChatException);
+                
+                 expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.equal('AUTH_ERR_AUTH_TOKEN_NOT_FOUND'); 
             });
         });
 
         it("Should login with authToken", function () {
-            CometChat.login(authToken).then(user => {
+          return CometChat.login(authToken).then(user => {
                 expect(user).to.be.an.instanceof(CometChat.User);
-            }, error => {                
+            }, error => {
+                console.log(error);
                 expect(error).to.not.exist();
             });
-        });          
-    })
+        });
+
+        // after("logout", function () {
+        //     console.log("logging out");
+        //     return CometChat.logout().then(() => {
+        //         console.log("logged out");
+        //         expect(true).to.be.true;
+        //     }, error => {
+        //         console.log("logged out but error");
+        //         expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        //     });
+        // })
+    });
 });
