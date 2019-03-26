@@ -9,10 +9,13 @@ const window = require('browser-env')({
     storageQuota: 10000000
 });
 const fetch = require('node-fetch');
+// const FormData = require('form-data');
 const CometChat = require('@cometchat-pro/chat').CometChat;
+
 window.fetch = fetch;
 global.fetch = fetch;
 var fs = require('fs');
+
 
 
 /***************************************
@@ -30,7 +33,7 @@ const appId = "1089f54cd9e81d",
 
 
 describe("Message test casess", function () {
-    this.timeout(100000);
+    this.timeout(10000);
     describe("Start message test cases", function () {
         before(async function () {
             await CometChat.init(appId);
@@ -40,7 +43,18 @@ describe("Message test casess", function () {
             }
         });
 
+        it("Should join the public group", function () {
+            return CometChat.joinGroup("supergroup", "public").then(group => {
+                expect(group).to.be.an.instanceof(CometChat.Group) && expect(group).to.haveOwnProperty('hasJoined') && expect(group.getHasJoined()).to.be.true;
+            }, error => {
+                expect(error).to.not.exist;
+            });
+        });
+        
         it("should send the message", function () {
+
+               
+
             let receiverID = "jstestuser2",
                 messageText = "Hello world!",
                 messageType = CometChat.MESSAGE_TYPE.TEXT,
@@ -112,50 +126,80 @@ describe("Message test casess", function () {
             );
         });
 
-        it("should create a file", function (done) {
-            // fs.readFile('/home/ins-201/Pictures/41912_Tvd4zfc.jpg', 'utf8', function (err, fileContents) {
-            //     if (err) throw err;
-            //     // tests = JSON.parse(fileContents);
-            //     console.log(fileContents);                
-            // });
 
-              var filePath = '/home/ins-201/Pictures/41912_Tvd4zfc.jpg';
-              var file = fs.readFileSync(filePath);
-              var payload = [
-                  '------WebKitFormBoundaryS4AeNzAzUP7OArMi',
-                  'Content-Disposition: form-data; name="file"; filename="CIMG3456.png"',
-                  'Content-Type: image/jpg',
-                  '',
-                  file,
-                  '------WebKitFormBoundaryS4AeNzAzUP7OArMi--'
-              ];
-              payload = payload.join('\r\n');
-              var binaryPayload = new Buffer(payload, 'binary');
-            
-            // var file = fs.createReadStream("/home/ins-201/Pictures/41912_Tvd4zfc.jpg")
-              
-                var receiverID = "jstestuser2";
-                var messageType = CometChat.MESSAGE_TYPE.FILE;
-                var receiverType = CometChat.RECEIVER_TYPE.USER;
-                let mediaMessage = new CometChat.MediaMessage(receiverID, binaryPayload, messageType, receiverType);
-                console.log({
-                    binaryPayload,
-                    mediaMessage
-                });
-                CometChat.sendMessage(mediaMessage).then(
-                    message => {
-                        // Message sent successfully.
-                        console.log("Media message sent successfully", message);
-                    },
-                    error => {
-                        console.log("Media message sending failed with error", error);
-                        // Handle exception.
-                    }
-                );
+        it("should send the message to group", function () {
+            let receiverID = "supergroup",
+                messageText = "Hello world!",
+                messageType = CometChat.MESSAGE_TYPE.TEXT,
+                receiverType = CometChat.RECEIVER_TYPE.GROUP;
 
-            
-            
+            var textMessage = new CometChat.TextMessage(receiverID, messageText, messageType, receiverType);
+
+            return CometChat.sendMessage(textMessage).then(
+                message => {
+                    expect(message).to.be.an.instanceof(CometChat.TextMessage) && expect(message.getSender()).to.be.an.instanceof(CometChat.User) && expect(message.getReceiver()).to.equal(receiverID);
+                },
+                error => {
+                    expect(error).to.not.exist;
+                }
+            );
         });
+
+        it("should not send TextMessage to group if receiverIs blank", function () {
+            let receiverID = "",
+                messageText = "Hello world!",
+                messageType = CometChat.MESSAGE_TYPE.TEXT,
+                receiverType = CometChat.RECEIVER_TYPE.GROUp;
+
+            var textMessage = new CometChat.TextMessage(receiverID, messageText, messageType, receiverType);
+
+            return CometChat.sendMessage(textMessage).then(
+                message => {
+                    expect(message).to.not.exist;
+                },
+                error => {
+                    expect(error).to.be.an.instanceOf(CometChat.CometChatException) && expect(error.details.receiver[0]).to.equal("The receiver field is required.")
+                }
+            );
+        });
+        it("should not send TextMessage to group if receiverIs invalid", function () {
+            let receiverID = "NOGROUP",
+                messageText = "Hello world!",
+                messageType = CometChat.MESSAGE_TYPE.TEXT,
+                receiverType = CometChat.RECEIVER_TYPE.GROUP;
+
+            var textMessage = new CometChat.TextMessage(receiverID, messageText, messageType, receiverType);
+
+            return CometChat.sendMessage(textMessage).then(
+                message => {
+                    expect(message).to.not.exist;
+                },
+                error => {
+                    expect(error).to.be.an.instanceOf(CometChat.CometChatException) && expect(error.code).to.equal("ERR_GUID_NOT_FOUND");
+                }
+            );
+        });
+
+
+        it("should not send TextMessage to group without/ empty text", function () {
+            let receiverID = "supergroup",
+                messageText = "",
+                messageType = CometChat.MESSAGE_TYPE.TEXT,
+                receiverType = CometChat.RECEIVER_TYPE.GROUP;
+
+            var textMessage = new CometChat.TextMessage(receiverID, messageText, messageType, receiverType);
+
+            return CometChat.sendMessage(textMessage).then(
+                message => {
+                    expect(message).to.not.exist;
+                },
+                error => {
+                    expect(error).to.be.an.instanceOf(CometChat.CometChatException) && expect(error.code).to.equal("ERR_EMPTY_MESSAGE_TEXT");
+                }
+            );
+        });
+
+
 
 
         after("logout", function () {
@@ -168,6 +212,6 @@ describe("Message test casess", function () {
                 expect(error).to.be.an.instanceof(CometChat.CometChatException);
             });
         })
-
     });
+
 });
