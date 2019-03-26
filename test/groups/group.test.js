@@ -45,15 +45,14 @@ describe('Initialize the CometChat and login', function () {
             let limit = 5,
                 groupRequest = new CometChat.GroupsRequestBuilder().setLimit(limit).build();
             return groupRequest.fetchNext().then(groupList => {
-                    expect(groupList).to.be.an.instanceof(Array);
+                expect(groupList).to.be.an.instanceof(Array);
             })
         });
 
         it("Get the group list with invalid/no limit", function () {
             let limit = 0,
                 groupRequest = new CometChat.GroupsRequestBuilder().setLimit(limit).build();
-            return groupRequest.fetchNext().then(groupList => {                
-            }, error => {
+            return groupRequest.fetchNext().then(groupList => {}, error => {
                 console.log(error);
                 expect(error).to.be.instanceof(CometChat.CometChatException);
             })
@@ -97,8 +96,7 @@ describe('Initialize the CometChat and login', function () {
             it("Should get Group information for type=public and status=joined", function () {
                 CometChat.getGroup(public_GUID).then(group => {
                     expect(group).to.be.an.instanceof(CometChat.Group);
-                }, error => {
-                    console.log(error);
+                }, error => {                    
                     expect(error).to.not.exist;
                 });
 
@@ -118,6 +116,37 @@ describe('Initialize the CometChat and login', function () {
                 }, error => {
                     expect(error).to.not.exist;
                 });
+            });
+
+            it("Should update the public group which he is not part of", function () {
+                var GUID = public_GUID;
+                var groupName = "jstestgroup testing";
+                var groupType = CometChat.GROUP_TYPE.PUBLIC;
+                var group = new CometChat.Group(GUID, groupName, groupType);
+
+                return CometChat.updateGroup(group).then(
+                    group => {
+                        expect(group).to.be.an.instanceof(CometChat.Group) && expect(group).to.haveOwnProperty('hasJoined') && expect(group.getName()).to.be.equal(groupName);
+                    },
+                    error => {
+                        expect(error).to.not.exist;
+                    }
+                );
+            });
+
+            it("Should not update the public group which is not part moderator or admin", function () {
+                var GUID = public_group_to_be_joined;
+                var groupName = "jstestgroup testing";
+                var groupType = CometChat.GROUP_TYPE.PUBLIC;
+                var group = new CometChat.Group(GUID, groupName, groupType);
+
+                return CometChat.updateGroup(group).then(
+                    group => {
+                      expect(group).to.not.exist;
+                    },
+                    error => {            
+                    expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.be.equal('ERR_GROUP_NO_MODERATOR_SCOPE');
+                    });
             });
 
             it("Should not join the public group since user is already a member", function () {
@@ -175,8 +204,14 @@ describe('Initialize the CometChat and login', function () {
                         expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.be.equal('ERR_GROUP_NOT_JOINED');
                     }
                 );
-            })
+            });
+
+
+
+
         });
+
+
 
 
 
@@ -195,8 +230,6 @@ describe('Initialize the CometChat and login', function () {
 
             let private_group_to_be_joined = "jstestgroup3",
                 private_group_to_be_left = "jstestgroup3";
-
-
 
 
             it("Should create private group", function () {
@@ -422,14 +455,14 @@ describe('Initialize the CometChat and login', function () {
         })
 
     });
-      after("logout", function () {
-          console.log("logging out");
-          return CometChat.logout().then(() => {
-              console.log("logged out");
-              expect(true).to.be.true;
-          }, error => {
-              console.log("logged out but error");
-              expect(error).to.be.an.instanceof(CometChat.CometChatException);
-          });
-      })
+    after("logout", function () {
+        console.log("logging out");
+        return CometChat.logout().then(() => {
+            console.log("logged out");
+            expect(true).to.be.true;
+        }, error => {
+            console.log("logged out but error");
+            expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        });
+    })
 })

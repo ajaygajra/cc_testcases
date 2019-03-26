@@ -117,31 +117,31 @@ describe("Login test cases", function () {
             expect(CometChat.isInitialized()).to.be.true;
         });
 
-        it("Should not login with false authToken", function () {
-            return  CometChat.login("").then(user => {
-                expect(user).to.not.exist();
-            }, error => {
-                console.log(error);
-                expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.equal('MISSING_PARAMETERS');
-            });
-        });
-        it("Should not login with false authToken", function () {
-            return CometChat.login("authToken").then(user => {
-                expect(user).to.not.exist();
-            }, error => {                
+        // it("Should not login with false authToken", function () {
+        //     return  CometChat.login("").then(user => {
+        //         expect(user).to.not.exist();
+        //     }, error => {
+        //         console.log(error);
+        //         expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.equal('MISSING_PARAMETERS');
+        //     });
+        // });
+        // it("Should not login with false authToken", function () {
+        //     return CometChat.login("authToken").then(user => {
+        //         expect(user).to.not.exist();
+        //     }, error => {                
                 
-                 expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.equal('AUTH_ERR_AUTH_TOKEN_NOT_FOUND'); 
-            });
-        });
+        //          expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property('code') && expect(error.code).to.equal('AUTH_ERR_AUTH_TOKEN_NOT_FOUND'); 
+        //     });
+        // });
 
-        it("Should login with authToken", function () {
-          return CometChat.login(authToken).then(user => {
-                expect(user).to.be.an.instanceof(CometChat.User);
-            }, error => {
-                console.log(error);
-                expect(error).to.not.exist();
-            });
-        });
+        // it("Should login with authToken", function () {
+        //   return CometChat.login(authToken).then(user => {
+        //         expect(user).to.be.an.instanceof(CometChat.User);
+        //     }, error => {
+        //         console.log(error);
+        //         expect(error).to.not.exist();
+        //     });
+        // });
 
         // after("logout", function () {
         //     console.log("logging out");

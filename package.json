@@ -11,6 +11,7 @@
     "assert": "^1.4.1",
     "browser-env": "^3.2.6",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "expect.js": "^0.3.1",
     "form-data": "^2.3.3",
     "fs": "0.0.1-security",

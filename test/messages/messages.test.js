@@ -36,24 +36,15 @@ describe("Message test casess", function () {
     this.timeout(10000);
     describe("Start message test cases", function () {
         before(async function () {
-            await CometChat.init(appId);
+            
             if (CometChat.isInitialized()) {
+                await CometChat.init(appId);
                 let user = await CometChat.login(uid, apiKey);
                 expect(user).to.be.instanceof(CometChat.AppUser);
             }
         });
-
-        it("Should join the public group", function () {
-            return CometChat.joinGroup("supergroup", "public").then(group => {
-                expect(group).to.be.an.instanceof(CometChat.Group) && expect(group).to.haveOwnProperty('hasJoined') && expect(group.getHasJoined()).to.be.true;
-            }, error => {
-                expect(error).to.not.exist;
-            });
-        });
-        
-        it("should send the message", function () {
-
-               
+     
+        it("should send the message", function () {               
 
             let receiverID = "jstestuser2",
                 messageText = "Hello world!",
