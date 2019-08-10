@@ -18,11 +18,20 @@ global.fetch = fetch;
 
 const expect = require('chai').expect;
 const appId = "1089f54cd9e81d";
+const wrongappId = "10ggf54cd9e81d";
     
 
 describe('Initialise CometChat', function () {
     it('Should generate the error if initializing CometChat SDK without APP_ID', function () {
         return CometChat.init('').then(function () {
+            expect(true).to.be.false;
+        }, function (error) {
+            expect(error).to.be.instanceof(CometChat.CometChatException);
+        });
+    });
+
+    it('Should generate the error if initializing CometChat SDK with wrong APP_ID', function () {
+        return CometChat.init(wrongappId).then(function () {
             expect(true).to.be.false;
         }, function (error) {
             expect(error).to.be.instanceof(CometChat.CometChatException);

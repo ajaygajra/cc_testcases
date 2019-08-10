@@ -19,7 +19,7 @@ global.fetch = fetch;
 
 const expect = require('chai').expect;
 describe('Exports the correct objects', function() {
-    it('should export raw objects', function()  {    
-            expect(CometChat).to.exist;
-    });
+  it('should export raw objects', function()  {    
+    expect(CometChat).to.exist;
+  });
 });
