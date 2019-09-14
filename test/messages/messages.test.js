@@ -22,10 +22,10 @@ var fs = require("fs");
 
 const expect = require("chai").expect;
 
-const appId = "1089f54cd9e81d",
-  uid = "jstestuser1",
-  apiKey = "fe9d19181100853ce4aab9c096ea851716cd9554",
-  receiverID = "jstestuser2",
+const appId = "100254e8db3d1b",
+  uid = "superhero1",
+  apiKey = "ebae51bfa38bb5f2f21266bd2e9f58b64c87ab9a",
+  receiverID = "superhero2",
   invalidreceiverID = "invalid",
   receiverType = CometChat.RECEIVER_TYPE.USER,
   invalidreceiverType = "invalid",
@@ -46,11 +46,12 @@ describe("Message test casess", function() {
   this.timeout(10000);
   describe("Start message test cases", function() {
     before(async function() {
-      if (CometChat.isInitialized()) {
+      if (!CometChat.isInitialized()) {
         await CometChat.init(appId);
-        let user = await CometChat.login(uid, apiKey);
-        expect(user).to.be.instanceof(CometChat.AppUser);
       }
+      expect(CometChat.isInitialized()).to.be.true;
+      let user = await CometChat.login(uid, apiKey);
+      expect(user).to.be.instanceof(CometChat.AppUser);
     });
 
     /*
@@ -68,9 +69,7 @@ describe("Message test casess", function() {
       );
       return CometChat.sendMessage(textMessage).then(
         message => {
-          expect(message).to.be.an.instanceof(CometChat.TextMessage) &&
-            expect(message.getSender()).to.be.an.instanceof(CometChat.User) &&
-            expect(message.getReceiver()).to.equal(receiverID);
+          expect(message).to.be.an.instanceof(CometChat.TextMessage);
         },
         error => {
           expect(error).to.not.exist();
@@ -346,7 +345,7 @@ describe("Message test casess", function() {
      *******************************************************
      */
 
-    it("Should send TextMessage if all arguments are valid/correct.", function() {
+    it("Should send MediaMessage if all arguments are valid/correct.", function() {
       var mediaMessage = new CometChat.MediaMessage(
         receiverID,
         fileObj,
@@ -671,10 +670,12 @@ describe("Message test casess", function() {
       );
       return CometChat.sendCustomMessage(customMessage).then(
         message => {
-          expect(message).to.not.exist();
+          expect(message).to.be.an.instanceof(CometChat.CustomMessage) &&
+            expect(message.getSender()).to.be.an.instanceof(CometChat.User) &&
+            expect(message.getReceiver()).to.equal(receiverID);
         },
         error => {
-          expect(error).to.be.an.instanceOf(CometChat.CometChatException);
+          expect(error).to.not.exist();
         }
       );
     });
@@ -834,7 +835,7 @@ describe("Message test casess", function() {
       );
     });
 
-    it("Should return error while sending edited TextMessage if edited message is invalid", function() {
+    it("Should return error while sending edited TextMessage if edited message id is invalid", function() {
       var textMessage = new CometChat.TextMessage(
         receiverID,
         messageText,
@@ -922,7 +923,7 @@ describe("Message test casess", function() {
             expect(message.getSender()).to.be.an.instanceof(CometChat.User) &&
             expect(message.getReceiver()).to.equal(receiverID);
           let messageId = message.id;
-          CometChat.editMessage(messageId).then(
+          CometChat.deleteMessage(messageId).then(
             message => {
               expect(message).to.be.an.instanceof(CometChat.TextMessage);
             },
@@ -949,7 +950,7 @@ describe("Message test casess", function() {
           expect(message).to.be.an.instanceof(CometChat.TextMessage) &&
             expect(message.getSender()).to.be.an.instanceof(CometChat.User) &&
             expect(message.getReceiver()).to.equal(receiverID);
-          CometChat.editMessage("1112222").then(
+          CometChat.deleteMessage("1112222").then(
             message => {
               expect(message).to.not.exist();
             },
@@ -976,7 +977,7 @@ describe("Message test casess", function() {
           expect(message).to.be.an.instanceof(CometChat.TextMessage) &&
             expect(message.getSender()).to.be.an.instanceof(CometChat.User) &&
             expect(message.getReceiver()).to.equal(receiverID);
-          CometChat.editMessage("").then(
+          CometChat.deleteMessage("").then(
             message => {
               expect(message).to.not.exist();
             },

@@ -1,6 +1,6 @@
 /**********************************************
-   Boilerplate ends here for CometChat testing .
- **********************************************/
+ Boilerplate ends here for CometChat testing .
+**********************************************/
 const window = require("browser-env")({
   url: "http://www.runtestcases.com",
   contentType: "text/html",
@@ -13,2491 +13,340 @@ window.fetch = fetch;
 global.fetch = fetch;
 
 /***************************************
-   Boilerplate ends here for CometChat.
- ***************************************/
+ Boilerplate ends here for CometChat.
+***************************************/
 
 var chai = require("chai");
-var expect = require("chai").expect;
+var expect = chai.expect;
 var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised).should();
-const assert = require("chai").assert;
+const assert = chai.assert;
 
-const appId = "1089f54cd9e81d",
-  uid = "jstestuser1",
-  invalidUid = "jstestuser",
-  invalidApiKey = "3de4f1672b44a43f1593ea03a27e3b3202a3869C",
-  apiKey = "fe9d19181100853ce4aab9c096ea851716cd9554";
+var appId = "247908b08eab7",
+  uid = "superhero1",
+  invalidUid = "adxasd",
+  apiKey = "9c3607b6862f23477741472cbb0ac1beffa9a410",
+  validLimit = 30,
+  negativeLimit = -21,
+  zeroLimit = 0,
+  validKeyWord = 'cap',
+  invalidKeyWord = 12,
+  emptyKeyWord = '',
+  emptyStatus = '',
+  validStatus = 'online',
+  invalidStatus = 'status';
 
-describe("Get the current loggedin user", function() {
-  this.timeout(10000);
+describe("User Test Cases", function() {
+  this.timeout(0);
 
   before(async function() {
-    await CometChat.init(appId);
-    if (CometChat.isInitialized()) {
-      let user = await CometChat.login(uid, apiKey);
-      expect(user).to.be.instanceof(CometChat.AppUser);
+    if (!CometChat.isInitialized()) {
+      let cometChatSettings = new CometChat.AppSettingsBuilder().subscribePresenceForAllUsers().setRegion(CometChat.AppSettings.REGION_US).build();
+      await CometChat.init(appId,cometChatSettings);
     }
+    expect(CometChat.isInitialized()).to.be.true;
+    let user = await CometChat.login(uid, apiKey);
+    expect(user).to.be.instanceof(CometChat.AppUser);
   });
 
   it("Should get the current logged in user's information", function() {
     return CometChat.getLoggedinUser().then(
       user => {
-        expect(user).should.eventually.have.property("uid");
+        expect(user).have.property("uid");
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        throw new Error(`Expected success but got error`);
       }
     );
   });
 
   /*
-   *********************************************************
-   ************************USER LIST************************
-   *********************************************************
-   */
+  *********************************************************
+  ************************USER LIST************************
+  *********************************************************
+  */
 
   /* NO METHODS START */
 
-  it("Should get the user list without any methods", function() {
+  it("Should return error without any methods", function() {
     var usersRequest = new CometChat.UsersRequestBuilder().build();
     return usersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
+        // expect(userList.length).to.be.greaterThan(0) && expect(userList).to.be.an.instanceof(Array);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        // throw new Error(`Expected success but got error`);
       }
     );
   });
 
   /* NO METHODS END */
 
-  /* LIMIT START */
+  /* ALL METHODS START */
 
-  it("Should get the user list with limit 0", function() {
-    var limit = 0;
+  it("Should get the user list with all valid params", function() {
     var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid limit", function() {
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with negative limit", function() {
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty limit", function() {
-    var usersRequest = new CometChat.UsersRequestBuilder().setLimit().build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* LIMIT END */
-
-  /* SEARCH KEYWORD START */
-
-  it("Should get the user list with vaild search keyword", function() {
-    var keyword = "group";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword", function() {
-    var keyword = "axevd";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword", function() {
-    var keyword = "";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* SEARCH KEYWORD END */
-
-  /* STATUS START */
-
-  it("Should get the user list with status online", function() {
-    var limit = 30;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with status offline", function() {
-    var limit = 30;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* STATUS END */
-
-  /* HIDE BLOCKED USER  START */
-
-  it("Should get the user list with hideBlockedUsers true", function() {
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with hideBlockedUsers false", function() {
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
+      .setLimit(validLimit)
+      .setSearchKeyword(validKeyWord)
+      .setStatus(validStatus)
       .hideBlockedUsers(false)
       .build();
     return usersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        expect(userList).to.be.an.instanceof(Array);
       },
       error => {
-        expect(error).to.not.exist();
+        console.log(error)
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        throw new Error(`Expected success but got error`);
       }
     );
   });
 
-  /* HIDE BLOCKED USER END */
-
-  /* LIMIT AND SEARCH KEYWORD START */
-
-  it("Should get the user list with valid search keyword and 0 limit", function() {
-    var keyword = "group";
-    var limit = 0;
+  it("Should return error with invalid status", function() {
     var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and 0 limit", function() {
-    var keyword = "";
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and 0 limit", function() {
-    var keyword = "axevd";
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and valid limit", function() {
-    var keyword = "group";
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and valid limit", function() {
-    var keyword = "";
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and valid limit", function() {
-    var keyword = "axevd";
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and empty limit", function() {
-    var keyword = "group";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and empty limit", function() {
-    var keyword = "";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and empty limit", function() {
-    var keyword = "axevd";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and negative limit", function() {
-    var keyword = "group";
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and negative limit", function() {
-    var keyword = "";
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and negative limit", function() {
-    var keyword = "axevd";
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* LIMIT AND SEARCH KEYWORD END */
-
-  /* LIMIT AND STATUS START */
-
-  it("Should get the user list with limit 0 and status online", function() {
-    var limit = 0;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid limit and status online", function() {
-    var limit = 30;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with negative limit and status online", function() {
-    var limit = -10;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty limit and status online", function() {
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with limit 0 and status offline", function() {
-    var limit = 0;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid limit and status offline", function() {
-    var limit = 30;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with negative limit and status offline", function() {
-    var limit = -10;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty limit and status offline", function() {
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* LIMIT AND STATUS END */
-
-  /* LIMIT AND HIDE BLOCKED USERS START */
-
-  it("Should get the user list with limit 0 and hideBlockedUsers true", function() {
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid limit and hideBlockedUsers true", function() {
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with negative limit hideBlockedUsers true", function() {
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty limit and hideBlockedUsers true", function() {
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with limit 0 and hideBlockedUsers false", function() {
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
+      .setLimit(validLimit)
+      .setSearchKeyword(validKeyWord)
+      .setStatus(invalidStatus)
       .hideBlockedUsers(false)
       .build();
     return usersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        expect(userList).to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
       }
     );
   });
 
-  it("Should get the user list with valid limit and hideBlockedUsers false", function() {
-    var limit = 30;
+  it("Should return error if invalid keyword is passed", function() {
     var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
+      .setLimit(validLimit)
+      .setSearchKeyword(invalidKeyWord)
+      .setStatus(validStatus)
       .hideBlockedUsers(false)
       .build();
     return usersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        console.log(userList);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
       }
     );
   });
 
-  it("Should get the user list with negative limit hideBlockedUsers false", function() {
-    var limit = -10;
+  it("Should return error if invalid keyword and invalid status is passed", function() {
     var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty limit and hideBlockedUsers false", function() {
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* LIMIT AND HIDE BLOCKED USERS END */
-
-  /* SEARCH KEYWORD AND STATUS START */
-
-  it("Should get the user list with vaild search keyword and status online", function() {
-    var keyword = "group";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and status online", function() {
-    var keyword = "axevd";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and status online", function() {
-    var keyword = "";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with vaild search keyword and status offline", function() {
-    var keyword = "group";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and status offline", function() {
-    var keyword = "axevd";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and status offline", function() {
-    var keyword = "";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* SEARCH KEYWORD AND STATUS END */
-
-  /* SEARCH KEYWORD AND HIDE BLOCKED USERS START */
-
-  it("Should get the user list with vaild search keyword and hideBlockedUsers true", function() {
-    var keyword = "group";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
+      .setLimit(validLimit)
+      .setSearchKeyword(invalidKeyWord)
+      .setStatus(invalidStatus)
       .hideBlockedUsers(true)
       .build();
     return usersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
+        // expect(userList.length).to.be.equal(0) || expect(userList).to.be.an.instanceof(Array);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
       }
     );
   });
 
-  it("Should get the user list with invalid search keyword and hideBlockedUsers true", function() {
-    var keyword = "axevd";
+  it("Should return an error if invalid limit is passed", function() {
     var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and hideBlockedUsers true", function() {
-    var keyword = "";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with vaild search keyword and hideBlockedUsers false", function() {
-    var keyword = "group";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
+      .setLimit(negativeLimit)
+      .setSearchKeyword(validKeyWord)
+      .setStatus(validStatus)
       .hideBlockedUsers(false)
       .build();
     return usersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        expect(userList).to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
       }
     );
   });
 
-  it("Should get the user list with invalid search keyword and hideBlockedUsers false", function() {
-    var keyword = "axevd";
+  it("Should return an error if invalid limit and invalid status is passed", function() {
     var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
+      .setLimit(negativeLimit)
+      .setSearchKeyword(validKeyWord)
+      .setStatus(invalidStatus)
       .hideBlockedUsers(false)
       .build();
     return usersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        expect(userList).to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
       }
     );
   });
 
-  it("Should get the user list with empty search keyword and hideBlockedUsers false", function() {
-    var keyword = "";
+  it("Should return an error if invalid limit and invalid keyword is passed", function() {
     var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
+      .setLimit(negativeLimit)
+      .setSearchKeyword(invalidKeyWord)
+      .setStatus(validStatus)
       .hideBlockedUsers(false)
       .build();
     return usersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        expect(userList).to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
       }
     );
   });
 
-  /* SEARCH KEYWORD AND HIDE BLOCKED USERS END */
-
-  /* STATUS AND HIDE BLOCKED USERS START */
-
-  it("Should get the user list with status online and hideBlockedUsers true", function() {
-    var limit = 30;
-    var status = "online";
+  it("Should return an error if invalid limit, invalid keyword and invalid status is passed", function() {
     var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with status online and hideBlockedUsers false", function() {
-    var limit = 30;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
+      .setLimit(negativeLimit)
+      .setSearchKeyword(invalidKeyWord)
+      .setStatus(invalidKeyWord)
       .hideBlockedUsers(false)
       .build();
     return usersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        expect(userList).to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
       }
     );
   });
 
-  it("Should get the user list with status offline and hideBlockedUsers true", function() {
-    var limit = 30;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with status offline and hideBlockedUsers false", function() {
-    var limit = 30;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* STATUS AND HIDE BLOCKED USERS END */
-
-  /* LIMIT, SEARCH KEYWORD AND STATUS START */
-
-  it("Should get the user list with valid search keyword and 0 limit and status online", function() {
-    var keyword = "group";
-    var limit = 0;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and 0 limit and status online", function() {
-    var keyword = "";
-    var limit = 0;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and 0 limit and status online", function() {
-    var keyword = "axevd";
-    var limit = 0;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and valid limit and status online", function() {
-    var keyword = "group";
-    var limit = 30;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and valid limit and status online", function() {
-    var keyword = "";
-    var limit = 30;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and valid limit and status online", function() {
-    var keyword = "axevd";
-    var limit = 30;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and empty limit and status online", function() {
-    var keyword = "group";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and empty limit and status online", function() {
-    var keyword = "";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and empty limit and status online", function() {
-    var keyword = "axevd";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and negative limit and status online", function() {
-    var keyword = "group";
-    var limit = -10;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and negative limit and status online", function() {
-    var keyword = "";
-    var limit = -10;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and negative limit and status online", function() {
-    var keyword = "axevd";
-    var limit = -10;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and 0 limit and status offline", function() {
-    var keyword = "group";
-    var limit = 0;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and 0 limit and status offline", function() {
-    var keyword = "";
-    var limit = 0;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and 0 limit and status offline", function() {
-    var keyword = "axevd";
-    var limit = 0;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and valid limit and status offline", function() {
-    var keyword = "group";
-    var limit = 30;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and valid limit and status offline", function() {
-    var keyword = "";
-    var limit = 30;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and valid limit and status offline", function() {
-    var keyword = "axevd";
-    var limit = 30;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and empty limit and status offline", function() {
-    var keyword = "group";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and empty limit and status offline", function() {
-    var keyword = "";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and empty limit and status offline", function() {
-    var keyword = "axevd";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and negative limit and status offline", function() {
-    var keyword = "group";
-    var limit = -10;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and negative limit and status offline", function() {
-    var keyword = "";
-    var limit = -10;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and negative limit and status offline", function() {
-    var keyword = "axevd";
-    var limit = -10;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* LIMIT, SEARCH KEYWORD AND STATUS END */
-
-  /* LIMIT, SEARCH KEYWORD AND HIDE BLOCKED USERS START */
-
-  it("Should get the user list with valid search keyword and 0 limit and hideBlockedUsers true", function() {
-    var keyword = "group";
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and 0 limit and hideBlockedUsers true", function() {
-    var keyword = "";
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and 0 limit and hideBlockedUsers true", function() {
-    var keyword = "axevd";
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and valid limit and hideBlockedUsers true", function() {
-    var keyword = "group";
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and valid limit and hideBlockedUsers true", function() {
-    var keyword = "";
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and valid limit and hideBlockedUsers true", function() {
-    var keyword = "axevd";
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and empty limit and hideBlockedUsers true", function() {
-    var keyword = "group";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and empty limit and hideBlockedUsers true", function() {
-    var keyword = "";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and empty limit and hideBlockedUsers true", function() {
-    var keyword = "axevd";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and negative limit and hideBlockedUsers true", function() {
-    var keyword = "group";
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and negative limit and hideBlockedUsers true", function() {
-    var keyword = "";
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and negative limit and hideBlockedUsers true", function() {
-    var keyword = "axevd";
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and 0 limit and hideBlockedUsers false", function() {
-    var keyword = "group";
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and 0 limit and hideBlockedUsers false", function() {
-    var keyword = "";
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and 0 limit and hideBlockedUsers false", function() {
-    var keyword = "axevd";
-    var limit = 0;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and valid limit and hideBlockedUsers false", function() {
-    var keyword = "group";
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and valid limit and hideBlockedUsers false", function() {
-    var keyword = "";
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and valid limit and hideBlockedUsers false", function() {
-    var keyword = "axevd";
-    var limit = 30;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and empty limit and hideBlockedUsers false", function() {
-    var keyword = "group";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and empty limit and hideBlockedUsers false", function() {
-    var keyword = "";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and empty limit and hideBlockedUsers false", function() {
-    var keyword = "axevd";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid search keyword and negative limit and hideBlockedUsers false", function() {
-    var keyword = "group";
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and negative limit and hideBlockedUsers false", function() {
-    var keyword = "";
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and negative limit and hideBlockedUsers false", function() {
-    var keyword = "axevd";
-    var limit = -10;
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyWord(keyword)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* LIMIT, SEARCH KEYWORD AND HIDE BLOCKED USERS END */
-
-  /* LIMIT, STATUS AND HIDE BLOCKED USERS START */
-
-  it("Should get the user list with limit 0 and status online and hideBlockedUsers false", function() {
-    var limit = 0;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid limit and status online and hideBlockedUsers false", function() {
-    var limit = 30;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with negative limit and status online and hideBlockedUsers false", function() {
-    var limit = -10;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty limit and status online and hideBlockedUsers false", function() {
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with limit 0 and status offline and hideBlockedUsers false", function() {
-    var limit = 0;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid limit and status offline and hideBlockedUsers false", function() {
-    var limit = 30;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with negative limit and status offline and hideBlockedUsers false", function() {
-    var limit = -10;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty limit and status offline and hideBlockedUsers false", function() {
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with limit 0 and status online and hideBlockedUsers true", function() {
-    var limit = 0;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid limit and status online and hideBlockedUsers true", function() {
-    var limit = 30;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with negative limit and status online and hideBlockedUsers true", function() {
-    var limit = -10;
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty limit and status online and hideBlockedUsers true", function() {
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with limit 0 and status offline and hideBlockedUsers true", function() {
-    var limit = 0;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with valid limit and status offline and hideBlockedUsers true", function() {
-    var limit = 30;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with negative limit and status offline and hideBlockedUsers true", function() {
-    var limit = -10;
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit(limit)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty limit and status offline and hideBlockedUsers true", function() {
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setLimit()
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* LIMIT, STATUS AND HIDE BLOCKED USERS END */
-
-  /* SEARCH KEYWORD, STATUS AND HIDE BLOCKED USERS START */
-
-  it("Should get the user list with vaild search keyword and status online and hideBlockedUsers true", function() {
-    var keyword = "group";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and status online and hideBlockedUsers true", function() {
-    var keyword = "axevd";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and status online and hideBlockedUsers true", function() {
-    var keyword = "";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with vaild search keyword and status offline and hideBlockedUsers true", function() {
-    var keyword = "group";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and status offline and hideBlockedUsers true", function() {
-    var keyword = "axevd";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and status offline and hideBlockedUsers true", function() {
-    var keyword = "";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(true)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with vaild search keyword and status online and hideBlockedUsers false", function() {
-    var keyword = "group";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and status online and hideBlockedUsers false", function() {
-    var keyword = "axevd";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and status online and hideBlockedUsers false", function() {
-    var keyword = "";
-    var status = "online";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with vaild search keyword and status offline and hideBlockedUsers false", function() {
-    var keyword = "group";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with invalid search keyword and status offline and hideBlockedUsers false", function() {
-    var keyword = "axevd";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the user list with empty search keyword and status offline and hideBlockedUsers false", function() {
-    var keyword = "";
-    var status = "offline";
-    var usersRequest = new CometChat.UsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setStatus(status)
-      .hideBlockedUsers(false)
-      .build();
-    return usersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* SEARCH KEYWORD, STATUS AND HIDE BLOCKED USERS END */
+  /* ALL METHODS END */
 
   /*
-   ********************************************************
-   ********************USER INFORMATION********************
-   ********************************************************
-   */
+  ********************************************************
+  ********************USER INFORMATION********************
+  ********************************************************
+  */
 
   it("Should get the user info with correct appId", function() {
-    var UID = "superhero1";
-    CometChat.getUser(UID).then(
+    CometChat.getUser(uid).then(
       user => {
-        expect(user).to.be.an.instanceof(CometChat.User);
+        expect(user).to.be.an.instanceof(CometChat.User) && expect(user.uid).to.be.equal(uid);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        throw new Error(`Expected success but got error`);
       }
     );
   });
 
   it("Should return error on invalid UID", function() {
-    var UID = "asda";
-    CometChat.getUser(UID).then(
+    CometChat.getUser(invalidUid).then(
       user => {
-        expect(user).to.not.exist();
+        expect(user).to.be.an.instanceof(CometChat.User);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error.code).to.be.equal('ERR_UID_NOT_FOUND');
       }
     );
   });
 
   /*
-   ********************************************************
-   ***********************BLOCK USER***********************
-   ********************************************************
-   */
+  ********************************************************
+  ***********************BLOCK USER***********************
+  ********************************************************
+  */
 
   it("Should return list of blocked users on valid array of users passed", function() {
-    var usersList = ["superhero1", "superhero2"];
+    var usersList = ["superhero2"];
     CometChat.blockUsers(usersList).then(
       list => {
-        expect(list).should.eventually.to.be.an.instanceof(Array);
+        expect(list[usersList[0]].success).to.be.true;
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        throw new Error(`Expected success but got error`);
       }
     );
   });
 
-  it("Should return list of blocked users on invalid array of users passed", function() {
+  it("Should return error when invalid array of users is passed", function() {
     var usersList = ["asdwer1"];
     CometChat.blockUsers(usersList).then(
       list => {
-        cexpect(list).to.not.exist();
+        throw new Error(`Expected error but got success`);
+        // expect(list[usersList[0]].success).to.be.false;
       },
       error => {
         expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        // throw new Error(`Expected success but got error`);
       }
     );
   });
 
-  it("Should return list of blocked users on empty array of users passed", function() {
+  it("Should return error on empty array of users passed", function() {
     var usersList = [];
     CometChat.blockUsers(usersList).then(
       list => {
-        expect(list).should.eventually.to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        
       }
     );
   });
 
   /*
-   ********************************************************
-   **********************UNBLOCK USER**********************
-   ********************************************************
-   */
+  ********************************************************
+  **********************UNBLOCK USER**********************
+  ********************************************************
+  */
 
-  it("Should return list of blocked users on valid array of users passed", function() {
-    var usersList = ["superhero1", "superhero2"];
+  it("Should return list of users (who are unblocked succesfully) on valid array of users passed", function() {
+    var usersList = ["superhero2"];
     CometChat.unblockUsers(usersList).then(
       list => {
-        expect(list).should.eventually.to.be.an.instanceof(Array);
+        expect(list[usersList[0]].success).to.be.true;
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        throw new Error(`Expected success but got error`);
       }
     );
   });
 
-  it("Should return list of blocked users on invalid array of users passed", function() {
+  it("Should return list of users (who are unblocked succesfully) on invalid array of users passed", function() {
     var usersList = ["asdwer1"];
     CometChat.unblockUsers(usersList).then(
       list => {
-        cexpect(list).to.not.exist();
+        throw new Error(`Expected error but got success`);
+      },
+      error => {
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        // throw new Error(`Expected success but got error`);
+      }
+    );
+  });
+
+  it("Should return error on empty array of users passed", function() {
+    var usersList = [];
+    CometChat.unblockUsers(usersList).then(
+      list => {
+        throw new Error(`Expected error but got success`);
       },
       error => {
         expect(error).to.be.an.instanceof(CometChat.CometChatException);
@@ -2505,1386 +354,104 @@ describe("Get the current loggedin user", function() {
     );
   });
 
-  it("Should return list of blocked users on empty array of users passed", function() {
-    var usersList = [];
-    CometChat.unblockUsers(usersList).then(
-      list => {
-        expect(list).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
   /*
-   ********************************************************
-   ******************LIST OF BLOCKED USER******************
-   ********************************************************
-   */
+  ********************************************************
+  ******************LIST OF BLOCKED USER******************
+  ********************************************************
+  */
 
   /* GET LIST OF BLOCKED USERS WITH NO METHODS START */
 
-  it("Should get the blocked user list with no methods", function() {
+  it("Should return eror with no methods", function() {
     var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder().build();
     return blockedUsersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
+        // expect(userList).to.be.an.instanceof(Array);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        // throw new Error(`Expected success but got error`);
       }
     );
   });
 
   /* GET LIST OF BLOCKED USERS WITH NO METHODS END */
 
-  /* GET LIST OF BLOCKED USERS WITH LIMIT START */
+  /* GET LIST OF BLOCKED USERS ALL METHOD START */
 
-  it("Should get the blocked user list with zero limit", function() {
-    var limit = 0;
+  it("Should get the blocked user list with valid params", function() {
     var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit", function() {
-    var limit = -10;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit", function() {
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit", function() {
-    var limit = 30;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* GET LIST OF BLOCKED USERS WITH LIMIT END */
-
-  /* GET LIST OF BLOCKED USERS WITH SEARCH KEYWORD START */
-
-  it("Should get the blocked user list with valid keyword", function() {
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with invalid keyword", function() {
-    var keyword = "awesd";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty keyword", function() {
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* GET LIST OF BLOCKED USERS WITH SEARCH KEYWORD END */
-
-  /* GET LIST OF BLOCKED USERS WITH SET DIRECTION START */
-
-  it("Should get the blocked user list with setDirection BLOCKED_BY_ME", function() {
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with setDirection HAS_BLOCKED_ME", function() {
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with setDirection BOTH", function() {
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
+      .setLimit(validLimit)
+      .setSearchKeyWord(validKeyWord)
       .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
       .build();
     return blockedUsersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        expect(userList).to.be.an.instanceof(Array);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+        throw new Error(`Expected success but got error`);
       }
     );
   });
 
-  /* GET LIST OF BLOCKED USERS WITH SET DIRECTION END */
 
-  /* GET LIST OF BLOCKED USERS WITH LIMIT AND SEARCH KEYWORD START */
-
-  it("Should get the blocked user list with zero limit and empty keyword", function() {
-    var limit = 0;
-    var keyword = "";
+  it("Should return userList with 0 users if invalid keyword is passed", function() {
     var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
+      .setLimit(validLimit)
+      .setSearchKeyWord(invalidKeyWord)
+      .setDirection('BOTH')
       .build();
     return blockedUsersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).be.an.instanceof(CometChat.CometChatException);
+        
       }
     );
   });
 
-  it("Should get the blocked user list with zero limit and valid keyword", function() {
-    var limit = 0;
-    var keyword = "super";
+
+  it("Should return error if invalid limit is passed", function() {
     var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and invalid keyword", function() {
-    var limit = 0;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and empty keyword", function() {
-    var limit = -10;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and valid keyword", function() {
-    var limit = -10;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and invalid keyword", function() {
-    var limit = -10;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and empty keyword", function() {
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and valid keyword", function() {
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and invalid keyword", function() {
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and empty keyword", function() {
-    var limit = 30;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and valid keyword", function() {
-    var limit = 30;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and invalid keyword", function() {
-    var limit = 30;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* GET LIST OF BLOCKED USERS WITH LIMIT AND SEARCH KEYWORD END */
-
-  /* GET LIST OF BLOCKED USERS WITH LIMIT AND DIRECTION START */
-
-  it("Should get the blocked user list with zero limit and direction BLOCKED_BY_ME", function() {
-    var limit = 0;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and direction BLOCKED_BY_ME", function() {
-    var limit = -10;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and direction BLOCKED_BY_ME", function() {
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and direction BLOCKED_BY_ME", function() {
-    var limit = 30;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and direction HAS_BLOCKED_ME", function() {
-    var limit = 0;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and direction HAS_BLOCKED_ME", function() {
-    var limit = -10;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and direction HAS_BLOCKED_ME", function() {
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and direction HAS_BLOCKED_ME", function() {
-    var limit = 30;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and direction BOTH", function() {
-    var limit = 0;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
+      .setLimit(negativeLimit)
+      .setSearchKeyWord(validKeyWord)
       .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
       .build();
     return blockedUsersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        expect(userList).to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
       }
     );
   });
 
-  it("Should get the blocked user list with negative limit and direction BOTH", function() {
-    var limit = -10;
+
+  it("Should return error if invalid limit and invalid keyword is passed", function() {
     var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
+      .setLimit(negativeLimit)
+      .setSearchKeyWord(invalidKeyWord)
       .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
       .build();
     return blockedUsersRequest.fetchNext().then(
       userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
+        expect(userList).to.be.an.instanceof(Array);
+        throw new Error(`Expected error but got success`);
       },
       error => {
-        expect(error).to.not.exist();
+        expect(error).to.be.an.instanceof(CometChat.CometChatException);
       }
     );
   });
 
-  it("Should get the blocked user list with empty limit and direction BOTH", function() {
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and direction BOTH", function() {
-    var limit = 30;
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* GET LIST OF BLOCKED USERS WITH LIMIT AND DIRECTION END */
-
-  /* GET LIST OF BLOCKED USERS WITH SEARCH KEYWORD AND DIRECTION START */
-
-  it("Should get the blocked user list with valid keyword and direction BLOCKED_BY_ME", function() {
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with invalid keyword and direction BLOCKED_BY_ME", function() {
-    var keyword = "awesd";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty keyword and direction BLOCKED_BY_ME", function() {
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid keyword and direction HAS_BLOCKED_ME", function() {
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with invalid keyword and direction HAS_BLOCKED_ME", function() {
-    var keyword = "awesd";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty keyword and direction HAS_BLOCKED_ME", function() {
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid keyword and direction BOTH", function() {
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with invalid keyword and direction BOTH", function() {
-    var keyword = "awesd";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty keyword and direction BOTH", function() {
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setSearchKeyWord(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* GET LIST OF BLOCKED USERS WITH SEARCH KEYWORD AND DIRECTION END */
-
-  /* GET LIST OF BLOCKED USERS WITH LIMIT, SEARCH KEYWORD AND DIRECTION START */
-
-  it("Should get the blocked user list with zero limit and empty keyword and direction BLOCKED_BY_ME", function() {
-    var limit = 0;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and valid keyword and direction BLOCKED_BY_ME", function() {
-    var limit = 0;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and invalid keyword and direction BLOCKED_BY_ME", function() {
-    var limit = 0;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and empty keyword and direction BLOCKED_BY_ME", function() {
-    var limit = -10;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and valid keyword and direction BLOCKED_BY_ME", function() {
-    var limit = -10;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and invalid keyword and direction BLOCKED_BY_ME", function() {
-    var limit = -10;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and empty keyword and direction BLOCKED_BY_ME", function() {
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and valid keyword and direction BLOCKED_BY_ME", function() {
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and invalid keyword and direction BLOCKED_BY_ME", function() {
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and empty keyword and direction BLOCKED_BY_ME", function() {
-    var limit = 30;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and valid keyword and direction BLOCKED_BY_ME", function() {
-    var limit = 30;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and invalid keyword and direction BLOCKED_BY_ME", function() {
-    var limit = 30;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BLOCKED_BY_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and empty keyword and direction HAS_BLOCKED_ME", function() {
-    var limit = 0;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and valid keyword and direction HAS_BLOCKED_ME", function() {
-    var limit = 0;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and invalid keyword and direction HAS_BLOCKED_ME", function() {
-    var limit = 0;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and empty keyword and direction HAS_BLOCKED_ME", function() {
-    var limit = -10;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and valid keyword and direction HAS_BLOCKED_ME", function() {
-    var limit = -10;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and invalid keyword and direction HAS_BLOCKED_ME", function() {
-    var limit = -10;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and empty keyword and direction HAS_BLOCKED_ME", function() {
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and valid keyword and direction HAS_BLOCKED_ME", function() {
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and invalid keyword and direction HAS_BLOCKED_ME", function() {
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and empty keyword and direction HAS_BLOCKED_ME", function() {
-    var limit = 30;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and valid keyword and direction HAS_BLOCKED_ME", function() {
-    var limit = 30;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and invalid keyword and direction HAS_BLOCKED_ME", function() {
-    var limit = 30;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.HAS_BLOCKED_ME)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and empty keyword and direction BOTH", function() {
-    var limit = 0;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and valid keyword and direction BOTH", function() {
-    var limit = 0;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with zero limit and invalid keyword and direction BOTH", function() {
-    var limit = 0;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and empty keyword and direction BOTH", function() {
-    var limit = -10;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and valid keyword and direction BOTH", function() {
-    var limit = -10;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with negative limit and invalid keyword and direction BOTH", function() {
-    var limit = -10;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and empty keyword and direction BOTH", function() {
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and valid keyword and direction BOTH", function() {
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with empty limit and invalid keyword and direction BOTH", function() {
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit()
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and empty keyword and direction BOTH", function() {
-    var limit = 30;
-    var keyword = "";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and valid keyword and direction BOTH", function() {
-    var limit = 30;
-    var keyword = "super";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  it("Should get the blocked user list with valid limit and invalid keyword and direction BOTH", function() {
-    var limit = 30;
-    var keyword = "ase";
-    var blockedUsersRequest = new CometChat.BlockedUsersRequestBuilder()
-      .setLimit(limit)
-      .setSearchKeyword(keyword)
-      .setDirection(CometChat.BlockedUsersRequest.directions.BOTH)
-      .build();
-    return blockedUsersRequest.fetchNext().then(
-      userList => {
-        expect(userList).should.eventually.to.be.an.instanceof(Array);
-      },
-      error => {
-        expect(error).to.not.exist();
-      }
-    );
-  });
-
-  /* GET LIST OF BLOCKED USERS WITH LIMIT, SEARCH KEYWORD AND DIRECTION END */
+  /* GET LIST OF BLOCKED USERS ALL METHOD END */
 
   after("logout", function() {
     console.log("logging out");

@@ -1,5 +1,5 @@
 {
-  "name": "mocha",
+  "name": "CometchatTests",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,19 +7,23 @@
     "test": "test"
   },
   "dependencies": {
-    "@cometchat-pro/chat": "^1.3.0",
+    "@cometchat-pro/chat": "2.0.0-beta.0",
     "assert": "^1.4.1",
+    "async": "^3.1.0",
     "browser-env": "^3.2.6",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
+    "chai-http": "^4.3.0",
     "expect.js": "^0.3.1",
     "form-data": "^2.3.3",
     "fs": "0.0.1-security",
-    "node-fetch": "^2.3.0"
+    "node-fetch": "^2.3.0",
+    "request": "^2.88.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.7",
     "@types/node": "^11.11.0",
-    "@types/chai": "^4.1.7"
+    "mocha": "^6.2.0"
   },
   "scripts": {
     "test": "find test -name '*.js' -exec mocha \\{} \\;"
