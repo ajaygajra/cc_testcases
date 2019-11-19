@@ -11,9 +11,9 @@ const CometChat = require('@cometchat-pro/chat').CometChat;
 const fetch = require('node-fetch');
 window.fetch = fetch;
 global.fetch = fetch;
-const validappId = "247908b08eab7";
+const validappId = "1066625ca50d45b";
 const emptyappId = "";
-let cometChatSettings = new CometChat.AppSettingsBuilder().subscribePresenceForAllUsers().setRegion(CometChat.AppSettings.REGION_US).build();
+let cometChatSettings = new CometChat.AppSettingsBuilder().subscribePresenceForAllUsers().setRegion(CometChat.AppSettings.REGION_EU).build();
 var testCase = [
   {
     "test_description" : "Cometchat init Method without APP ID",
@@ -44,7 +44,7 @@ describe('CometChat Initialization Method', function() {
           if(test.expected_output === 'success'){
             assert.equal(CometChat.isInitialized(),true)
           }else{
-            throw new Error(`Expected error but got success`);
+            throw new Error(`Expected success but got error`);
           }
           
         }, 
@@ -52,7 +52,7 @@ describe('CometChat Initialization Method', function() {
           if(test.expected_output === 'error'){
             expect(error).to.exist;
           }else{
-            throw new Error(`Expected success but got error`);
+            throw new Error(`Expected error but got success`);
           }
           
         }

@@ -1,666 +1,861 @@
-/**********************************************
-   Boilerplate ends here for CometChat testing .
- **********************************************/
-// const window = require("browser-env")({
-//   url: "http://www.runtestcases.com",
-//   contentType: "text/html",
-//   includeNodeLocations: true,
-//   storageQuota: 10000000
-// });
-// const fetch = require("node-fetch");
-// const CometChat = require("@cometchat-pro/chat").CometChat;
-// window.fetch = fetch;
-// global.fetch = fetch;
-
-/***************************************
-   Boilerplate ends here for CometChat.
- ***************************************/
-
-// var chai = require("chai");
+const chai = require("Chai");
+var assert = chai.assert;
 var expect = chai.expect;
-// var chaiAsPromised = require("chai-as-promised");
-// chai.use(chaiAsPromised).should();
-// const assert = chai.assert;
+const window = require("browser-env")({
+  url: "http://www.runtestcases.com",
+  contentType: "text/html",
+  includeNodeLocations: true,
+  storageQuota: 10000000
+});
+const CometChat = require("@cometchat-pro/chat").CometChat;
+const fetch = require("node-fetch");
+window.fetch = fetch;
+global.fetch = fetch;
 
-var appId = "100254e8db3d1b",
-  uid = "superhero1",
-  apiKey = "ebae51bfa38bb5f2f21266bd2e9f58b64c87ab9a",
-  validLimit = 30,
-  negativeLimit = -21,
-  validKeyWord = 'cap',
-  invalidKeyWord = 10,
-  GUID = "buddies",
-  groupName = "ABCD",
-  groupType = "public",
-  password = '1234567890';
+const valid_appId = "247908b08eab7";
+const valid_api_key = "9c3607b6862f23477741472cbb0ac1beffa9a410";
+const valid_uid = "superhero1";
+const valid_group = "jeetgroup";
+const valid_group_private = "superhero_private";
 
-describe("Initialize the CometChat and login", function() {
-  this.timeout(0);
-  before(async function() {
-    await CometChat.init(appId);
-    if (CometChat.isInitialized()) {
-      let user = await CometChat.login(uid, apiKey);
-      expect(user).to.be.instanceof(CometChat.User);
-    }
-  });
-  describe("Get the group list", function() {
-    it("Get the group list with valid limit and searchKeyWord", function() {
-        groupRequest = new CometChat.GroupsRequestBuilder()
-          .setLimit(validLimit)
-          .setSearchKeyWord(validKeyWord)
-          .build();
-        return groupRequest.fetchNext().then(
-            groupList => {
-                expect(groupList).to.be.an.instanceof(Array);
-            }, error =>{
-                expect(error).to.not.exist();
-            }
-        );
-    });
-
-    it("Should return an error when valid limit and invalid searchKeyWord is passed", function() {
-        groupRequest = new CometChat.GroupsRequestBuilder()
-          .setLimit(validLimit)
-          .setSearchKeyWord(invalidKeyWord)
-          .build();
-        return groupRequest.fetchNext().then(
-            groupList => {
-                expect(groupList).to.not.exist();
-            }, error =>{
-                expect(error).to.be.an.instanceof(CometChat.CometChatException);
-            }
-        );
-    });
-
-    it("Should return an error when invalid limit and searchKeyWord is passed", function() {
-        groupRequest = new CometChat.GroupsRequestBuilder()
-          .setLimit(negativeLimit)
-          .setSearchKeyWord(validKeyWord)
-          .build();
-        return groupRequest.fetchNext().then(
-            groupList => {
-                expect(groupList).to.not.exist();
-            }, error =>{
-                expect(error).to.be.an.instanceof(CometChat.CometChatException);
-            }
-        );
-    });
-
-    it("Should return an error when invalid limit and invalid searchKeyWord is passed", function() {
-        groupRequest = new CometChat.GroupsRequestBuilder()
-          .setLimit(negativeLimit)
-          .setSearchKeyWord(invalidKeyWord)
-          .build();
-        return groupRequest.fetchNext().then(
-            groupList => {
-                expect(groupList).to.not.exist();
-            }, error =>{
-                expect(error).to.be.an.instanceof(CometChat.CometChatException);
-            }
-        );
-    });
-
-  });
-
-  describe("Create groups", function() {
-    describe("Creating public group", function() {
-        this.timeout(0);
-        it("Should create public group", function() {
-            var public_group = new CometChat.Group(GUID, groupName, groupType);
-            return CometChat.createGroup(public_group).then(
-              group => {
-                expect(group).to.be.an.instanceof(CometChat.Group) && expect(group).to.have.property("hasJoined");
-              },
-              error => {
-                expect(error).to.not.exist;
-              }
-            );
-        });
-
-        it("Should not create public group because it already exists", function() {
-            var public_group = new CometChat.Group(GUID, groupName, groupType);
-            return CometChat.createGroup(public_group).then(
-              group => {
-                expect(group).to.not.exist();
-              },
-              error => {
-                expect(error).to.be.an.instanceof(CometChat.CometChatException) && expect(error).to.have.property("details") && expect(error["details"]).to.have.property("guid");
-              }
-            );
-        });
-      
-      let public_GUID = "test_public_group" + new Date().getTime();
-      let notjoined_public_GUID = "jstestgroup2";
-
-      let public_group_name = "Hello Group!";
-      let public_group_des =
-        "Hello Group! created  at " + new Date().toString();
-      let group_type_public = CometChat.GROUP_TYPE.PUBLIC;
-
-      var public_group = new CometChat.Group(
-        public_GUID,
-        public_group_name,
-        group_type_public
-      );
-      public_group.setDescription(public_group_des);
-
-      let public_group_to_be_joined = "jstestgroup1",
-        public_group_to_be_left = "jstestgroup1";
-
-      it("Should create public group", function() {
-        return CometChat.createGroup(public_group).then(
-          group => {
-            expect(group).to.be.an.instanceof(CometChat.Group) &&
-              expect(group).to.have.property("hasJoined") &&
-              expect(group.getHasJoined()).to.be.true;
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-
-      it("Should not create public group since it's already present", function() {
-        return CometChat.createGroup(public_group).then(
-          group => {
-            expect(group).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("details") &&
-              expect(error["details"]).to.have.property("guid");
-          }
-        );
-      });
-
-      it("Should get Group information for type=public and status=joined", function() {
-        CometChat.getGroup(public_GUID).then(
-          group => {
-            expect(group).to.be.an.instanceof(CometChat.Group);
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-
-      it("Should not  get group information for type=public and status= not joined ", function() {
-        CometChat.getGroup(notjoined_public_GUID).then(
-          group => {
-            expect(group).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_GROUP_NOT_JOINED");
-          }
-        );
-      });
-
-      it("Should join the public group", function() {
-        return CometChat.joinGroup(
-          public_group_to_be_joined,
-          group_type_public
-        ).then(
-          group => {
-            expect(group).to.be.an.instanceof(CometChat.Group) &&
-              expect(group).to.haveOwnProperty("hasJoined") &&
-              expect(group.getHasJoined()).to.be.true;
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-
-      it("Should update the public group which he is not part of", function() {
-        var GUID = public_GUID;
-        var groupName = "jstestgroup testing";
-        var groupType = CometChat.GROUP_TYPE.PUBLIC;
-        var group = new CometChat.Group(GUID, groupName, groupType);
-
-        return CometChat.updateGroup(group).then(
-          group => {
-            expect(group).to.be.an.instanceof(CometChat.Group) &&
-              expect(group).to.haveOwnProperty("hasJoined") &&
-              expect(group.getName()).to.be.equal(groupName);
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-
-      it("Should not update the public group which is not part moderator or admin", function() {
-        var GUID = public_group_to_be_joined;
-        var groupName = "jstestgroup testing";
-        var groupType = CometChat.GROUP_TYPE.PUBLIC;
-        var group = new CometChat.Group(GUID, groupName, groupType);
-
-        return CometChat.updateGroup(group).then(
-          group => {
-            expect(group).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_GROUP_NO_MODERATOR_SCOPE");
-          }
-        );
-      });
-
-      it("Should not join the public group since user is already a member", function() {
-        return CometChat.joinGroup(
-          public_group_to_be_joined,
-          group_type_public
-        ).then(
-          group => {
-            expect(group).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_ALREADY_JOINED");
-          }
-        );
-      });
-
-      it("Should leave the public group", function() {
-        return CometChat.leaveGroup(public_group_to_be_left).then(
-          hasLeft => {
-            expect(hasLeft).to.be.true;
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-
-      it("Should not leave the public group since user is not a member", function() {
-        return CometChat.leaveGroup(public_group_to_be_left).then(
-          hasLeft => {
-            expect(error).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_GROUP_NOT_JOINED");
-          }
-        );
-      });
-      it("Should delete the public group", function() {
-        return CometChat.deleteGroup(public_GUID).then(
-          response => {
-            expect(response).to.be.true;
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-      it("Should delete the public group which is not present", function() {
-        return CometChat.deleteGroup(public_GUID).then(
-          response => {
-            expect(response).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_GUID_NOT_FOUND");
-          }
-        );
-      });
-      it("Should delete the public group which he is not part of", function() {
-        return CometChat.deleteGroup(public_group_to_be_left).then(
-          response => {
-            expect(response).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_GROUP_NOT_JOINED");
-          }
-        );
-      });
-    });
-
-    describe("Creating private group", function() {
-      let private_GUID = "test_private_group" + "_" + new Date().getTime();
-      let private_group_name = "Hello Group!";
-      let private_group_des =
-        "Hello Group! created  at " + new Date().toString();
-      let group_type_private = CometChat.GROUP_TYPE.PRIVATE;
-      let private_group = new CometChat.Group(
-        private_GUID,
-        private_group_name,
-        group_type_private
-      );
-
-      let notjoined_private_GUID = "jstestgroup4";
-      private_group.setDescription(private_group_des);
-
-      let private_group_to_be_joined = "jstestgroup3",
-        private_group_to_be_left = "jstestgroup3";
-
-      it("Should create private group", function() {
-        return CometChat.createGroup(private_group).then(
-          group => {
-            expect(group).to.be.an.instanceof(CometChat.Group) &&
-              expect(group).to.have.property("hasJoined") &&
-              expect(group.getHasJoined()).to.be.true;
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-
-      it("Should not create private group since it's already present", function() {
-        return CometChat.createGroup(private_group).then(
-          group => {
-            expect(group).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("details") &&
-              expect(error["details"]).to.have.property("guid");
-          }
-        );
-      });
-
-      it("Should  get Group information for type=private and status=joined", function() {
-        CometChat.getGroup(private_GUID).then(
-          group => {
-            expect(group).to.be.an.instanceof(CometChat.Group);
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-
-      it("Should not  get group information for type=private and status= not joined ", function() {
-        CometChat.getGroup(notjoined_private_GUID).then(
-          group => {
-            expect(group).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_GROUP_NOT_JOINED");
-          }
-        );
-      });
-
-      it("Should join the private group", function() {
-        return CometChat.joinGroup(
-          private_group_to_be_joined,
-          group_type_private
-        ).then(
-          group => {
-            expect(group).to.be.an.instanceof(CometChat.Group) &&
-              expect(group).to.haveOwnProperty("hasJoined") &&
-              expect(group.getHasJoined()).to.be.true;
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-
-      it("Should not join the private group since user is already a member", function() {
-        return CometChat.joinGroup(
-          private_group_to_be_joined,
-          group_type_private
-        ).then(
-          group => {
-            expect(group).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_ALREADY_JOINED");
-          }
-        );
-      });
-
-      it("Should leave the private group", function() {
-        return CometChat.leaveGroup(private_group_to_be_left).then(
-          hasLeft => {
-            expect(hasLeft).to.be.true;
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-
-      it("Should not leave the private group since user is not a member", function() {
-        return CometChat.leaveGroup(private_group_to_be_left).then(
-          hasLeft => {
-            expect(error).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_GROUP_NOT_JOINED");
-          }
-        );
-      });
-
-      it("Should delete the public group", function() {
-        return CometChat.deleteGroup(private_GUID).then(
-          response => {
-            expect(response).to.be.true;
-          },
-          error => {
-            expect(error).to.not.exist;
-          }
-        );
-      });
-      it("Should delete the private group which is not present", function() {
-        return CometChat.deleteGroup(private_GUID).then(
-          response => {
-            expect(response).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_GUID_NOT_FOUND");
-          }
-        );
-      });
-      it("Should delete the private group which he is not part of", function() {
-        return CometChat.deleteGroup(private_group_to_be_left).then(
-          response => {
-            expect(response).to.not.exist;
-          },
-          error => {
-            expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-              expect(error).to.have.property("code") &&
-              expect(error.code).to.be.equal("ERR_GROUP_NOT_JOINED");
-          }
-        );
-      });
-    });
-  });
-
-  describe("Creating password group", function() {
-    let password_GUID = "test_password_group" + "_" + new Date().getTime();
-    let password_group_name = "Password Test Group One";
-    let password_group_des =
-      "Hello Group! created  at " + new Date().toString();
-    let group_type_password = CometChat.GROUP_TYPE.PASSWORD;
-    let password = "password";
-    let invlidPassword = "invalidPassword";
-
-    let notjoined_password_GUID = "jstestgroup6";
-
-    let password_group = new CometChat.Group(
-      password_GUID,
-      password_group_name,
-      group_type_password,
-      password
-    );
-    password_group.setDescription(password_group_des);
-
-    let password_group_to_be_left = "jstestgroup5",
-      password_group_to_be_joined = "jstestgroup5";
-
-    it("Should create password group", function() {
-      return CometChat.createGroup(password_group).then(
-        group => {
-          expect(group).to.be.an.instanceof(CometChat.Group) &&
-            expect(group).to.have.property("hasJoined") &&
-            expect(group.getHasJoined()).to.be.true;
-        },
-        error => {
-          expect(error).to.not.exist;
-        }
-      );
-    });
-
-    it("Should not create password group since it's already present", function() {
-      return CometChat.createGroup(password_group).then(
-        group => {
-          expect(group).to.not.exist;
-        },
-        error => {
-          expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-            expect(error).to.have.property("details") &&
-            expect(error["details"]).to.have.property("guid");
-        }
-      );
-    });
-
-    it("Should get Group information for type=password and status=joined", function() {
-      return CometChat.getGroup(password_GUID).then(
-        group => {
-          expect(group).to.be.an.instanceof(CometChat.Group);
-        },
-        error => {
-          expect(error).to.not.exist;
-        }
-      );
-    });
-
-    it("Should not get group information for type=password and status= not joined ", function() {
-      return CometChat.getGroup(notjoined_password_GUID).then(
-        group => {
-          expect(group).to.not.exist;
-        },
-        error => {
-          expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-            expect(error).to.have.property("code") &&
-            expect(error.code).to.be.equal("ERR_GROUP_NOT_JOINED");
-        }
-      );
-    });
-
-    it("Should join the password group", function() {
-      return CometChat.joinGroup(
-        password_group_to_be_joined,
-        group_type_password,
-        password
-      ).then(
-        group => {
-          expect(group).to.be.an.instanceof(CometChat.Group) &&
-            expect(group).to.haveOwnProperty("hasJoined") &&
-            expect(group.getHasJoined()).to.be.true;
-        },
-        error => {
-          expect(error).to.not.exist;
-        }
-      );
-    });
-
-    it("Should not join the password group since user is already a member", function() {
-      return CometChat.joinGroup(
-        password_group_to_be_joined,
-        group_type_password,
-        password
-      ).then(
-        group => {
-          expect(group).to.not.exist;
-        },
-        error => {
-          expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-            expect(error).to.have.property("code") &&
-            expect(error.code).to.be.equal("ERR_ALREADY_JOINED");
-        }
-      );
-    });
-
-    it("Should leave the password group", function() {
-      return CometChat.leaveGroup(password_group_to_be_left).then(
-        hasLeft => {
-          expect(hasLeft).to.be.true;
-        },
-        error => {
-          expect(error).to.not.exist;
-        }
-      );
-    });
-
-    it("Should not leave the password group since user is not a member", function() {
-      return CometChat.leaveGroup(password_group_to_be_left).then(
-        hasLeft => {
-          expect(hasLeft).to.not.exist;
-        },
-        error => {
-          expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-            expect(error).to.have.property("code") &&
-            expect(error.code).to.be.equal("ERR_GROUP_NOT_JOINED");
-        }
-      );
-    });
-    it("Should delete the public group", function() {
-      return CometChat.deleteGroup(password_GUID).then(
-        response => {
-          expect(response).to.be.true;
-        },
-        error => {
-          expect(error).to.not.exist;
-        }
-      );
-    });
-
-    it("Should delete the password group which is not present", function() {
-      return CometChat.deleteGroup(password_GUID).then(
-        response => {
-          expect(response).to.not.exist;
-        },
-        error => {
-          expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-            expect(error).to.have.property("code") &&
-            expect(error.code).to.be.equal("ERR_GUID_NOT_FOUND");
-        }
-      );
-    });
-    it("Should delete the private group which he is not part of", function() {
-      return CometChat.deleteGroup(password_group_to_be_left).then(
-        response => {
-          expect(response).to.not.exist;
-        },
-        error => {
-          expect(error).to.be.an.instanceof(CometChat.CometChatException) &&
-            expect(error).to.have.property("code") &&
-            expect(error.code).to.be.equal("ERR_GROUP_NOT_JOINED");
-        }
-      );
-    });
-  });
-  after("logout", function() {
-    console.log("logging out");
-    return CometChat.logout().then(
-      () => {
-        console.log("logged out");
-        expect(true).to.be.true;
+var testCaseGroupBuilder = [
+  {
+    test_description:
+      "Cometchat GroupRequestBuilder valid setLimit , valid setSearchKeyWord , build",
+    method_name: "CometChat.GroupRequestBuilder",
+    parameter: {
+      setLimit: {
+        flag: true,
+        data: 10
       },
-      error => {
-        console.log("logged out but error");
-        expect(error).to.be.an.instanceof(CometChat.CometChatException);
+      setSearchKeyWord: {
+        flag: true,
+        data: "super"
+      },
+      build: {
+        flag: true
       }
-    );
+    },
+    expect_output: "success"
+  },
+
+  {
+    test_description:
+      "Cometchat GroupRequestBuilder valid setLimit , invalid setSearchKeyWord , build",
+    method_name: "CometChat.GroupRequestBuilder",
+    parameter: {
+      setLimit: {
+        flag: true,
+        data: 10
+      },
+      setSearchKeyWord: {
+        flag: false,
+        data: "invalid"
+      },
+      build: {
+        flag: true
+      }
+    },
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat GroupRequestBuilder invalid setLimit , valid setSearchKeyWord , build",
+    method_name: "CometChat.GroupRequestBuilder",
+    parameter: {
+      setLimit: {
+        flag: false,
+        data: 10
+      },
+      setSearchKeyWord: {
+        flag: true,
+        data: "super"
+      },
+      build: {
+        flag: true
+      }
+    },
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat GroupRequestBuilder invalid setLimit , invalid setSearchKeyWord , build",
+    method_name: "CometChat.GroupRequestBuilder",
+    parameter: {
+      setLimit: {
+        flag: false,
+        data: 10
+      },
+      setSearchKeyWord: {
+        flag: false,
+        data: "super"
+      },
+      build: {
+        flag: true
+      }
+    },
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat GroupRequestBuilder valid setLimit , valid setSearchKeyWord , false build",
+    method_name: "CometChat.GroupRequestBuilder",
+    parameter: {
+      setLimit: {
+        flag: true,
+        data: 10
+      },
+      setSearchKeyWord: {
+        flag: true,
+        data: "super"
+      },
+      build: {
+        flag: false
+      }
+    },
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat GroupRequestBuilder valid setLimit , invalid setSearchKeyWord , false build",
+    method_name: "CometChat.GroupRequestBuilder",
+    parameter: {
+      setLimit: {
+        flag: true,
+        data: 10
+      },
+      setSearchKeyWord: {
+        flag: false,
+        data: "invalid"
+      },
+      build: {
+        flag: false
+      }
+    },
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat GroupRequestBuilder invalid setLimit , valid setSearchKeyWord , false build",
+    method_name: "CometChat.GroupRequestBuilder",
+    parameter: {
+      setLimit: {
+        flag: false,
+        data: 10
+      },
+      setSearchKeyWord: {
+        flag: true,
+        data: "super"
+      },
+      build: {
+        flag: false
+      }
+    },
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat GroupRequestBuilder invalid setLimit , invalid setSearchKeyWord , false build",
+    method_name: "CometChat.GroupRequestBuilder",
+    parameter: {
+      setLimit: {
+        flag: false,
+        data: 10
+      },
+      setSearchKeyWord: {
+        flag: false,
+        data: "super"
+      },
+      build: {
+        flag: false
+      }
+    },
+    expect_output: "error"
+  }
+];
+
+var testCaseGetGroup = [
+  {
+    test_description: "Cometchat getGroup valid GUID",
+    method_name: "CometChat.getGroup",
+    parameter: ["jeetgroup"],
+    expect_output: "success"
+  },
+  {
+    test_description: "Cometchat getGroup Invalid GUID",
+    method_name: "CometChat.getGroup",
+    parameter: ["random_group"],
+    expect_output: "error"
+  }
+];
+
+var testCaseCreateGroup = [
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, valid groupName, public groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "test", CometChat.GROUP_TYPE.PUBLIC, "123"],
+    expect_output: "success"
+  },
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, valid groupName, Private groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "test", CometChat.GROUP_TYPE.PRIVATE, "123"],
+    expect_output: "success"
+  },
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, valid groupName, Private groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "test", CometChat.GROUP_TYPE.PRIVATE, ""],
+    expect_output: "success"
+  },
+
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, valid groupName, Password groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "test", CometChat.GROUP_TYPE.PASSWORD, "123"],
+    expect_output: "success"
+  },
+
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, valid groupName, Password groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "test", CometChat.GROUP_TYPE.PASSWORD, ""],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, valid groupName, Empty groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "test", "", "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, valid groupName, Empty groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "test", "", ""],
+    expect_output: "error"
+  },
+
+  //------------------------------------------
+
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, Empty groupName, public groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "", CometChat.GROUP_TYPE.PUBLIC, "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, empty groupName, public groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "", CometChat.GROUP_TYPE.PUBLIC, ""],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, empty groupName, Private groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "", CometChat.GROUP_TYPE.PRIVATE, "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, empty groupName, Private groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "", CometChat.GROUP_TYPE.PRIVATE, ""],
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, empty groupName, Password groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "", CometChat.GROUP_TYPE.PASSWORD, "123"],
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, empty groupName, Password groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "", CometChat.GROUP_TYPE.PASSWORD, ""],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, empty groupName, Empty groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "", "", "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup valid  GUID, empty groupName, Empty groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", "", "", ""],
+    expect_output: "error"
+  },
+
+  //===============================================================================================================
+
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, valid groupName, public groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "test", CometChat.GROUP_TYPE.PUBLIC, "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, valid groupName, public groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "test", CometChat.GROUP_TYPE.PUBLIC, ""],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, valid groupName, Private groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "test", CometChat.GROUP_TYPE.PRIVATE, "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, valid groupName, Private groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "test", CometChat.GROUP_TYPE.PRIVATE, ""],
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, valid groupName, Password groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "test", CometChat.GROUP_TYPE.PASSWORD, "123"],
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, valid groupName, Password groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "test", CometChat.GROUP_TYPE.PASSWORD, ""],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, valid groupName, Empty groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "test", "", "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, valid groupName, Empty groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "test", "", ""],
+    expect_output: "error"
+  },
+
+  //---------------------------------------------------------------------------------------------------------------
+
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, Empty groupName, public groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "", CometChat.GROUP_TYPE.PUBLIC, "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, empty groupName, public groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "", CometChat.GROUP_TYPE.PUBLIC, ""],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, empty groupName, Private groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "", CometChat.GROUP_TYPE.PRIVATE, "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, empty groupName, Private groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "", CometChat.GROUP_TYPE.PRIVATE, ""],
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, empty groupName, Password groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "", CometChat.GROUP_TYPE.PASSWORD, "123"],
+    expect_output: "error"
+  },
+
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, empty groupName, Password groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "", CometChat.GROUP_TYPE.PASSWORD, ""],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, empty groupName, Empty groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "", "", "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat createGroup Empty  GUID, empty groupName, Empty groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["", "", "", ""],
+    expect_output: "error"
+  }
+];
+
+var testCaseJoinGroup = [
+  {
+    test_description:
+      "Cometchat joinGroup valid  GUID,  Public groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", CometChat.GROUP_TYPE.PUBLIC, "123"],
+    expect_output: "success"
+  },
+  {
+    test_description:
+      "Cometchat joinGroup valid  GUID,  Public groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", CometChat.GROUP_TYPE.PUBLIC, ""],
+    expect_output: "success"
+  },
+  {
+    test_description:
+      "Cometchat joinGroup valid  GUID,  Private groupType, valid password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", CometChat.GROUP_TYPE.PRIVATE, "123"],
+    expect_output: "error"
+  },
+  {
+    test_description:
+      "Cometchat joinGroup valid  GUID,  Private groupType, Empty password",
+    method_name: "CometChat.getGroup",
+    parameter: ["valid", CometChat.GROUP_TYPE.PRIVATE, ""],
+    expect_output: "error"
+  }
+];
+
+var testCaseAddMembersToGroup = [
+  {
+    test_description: "Cometchat addMembersToGroup valid  GUID",
+    method_name: "CometChat.addMembersToGroup",
+    parameter: ["valid", "valid", []],
+    expect_output: "success"
+  },
+  {
+    test_description: "Cometchat addMembersToGroup valid  GUID",
+    method_name: "CometChat.addMembersToGroup",
+    parameter: ["valid", "invalid", []],
+    expect_output: "error"
+  },
+  {
+    test_description: "Cometchat addMembersToGroup valid  GUID",
+    method_name: "CometChat.addMembersToGroup",
+    parameter: ["invalid", "valid", []],
+    expect_output: "error"
+  },
+  {
+    test_description: "Cometchat addMembersToGroup valid  GUID",
+    method_name: "CometChat.addMembersToGroup",
+    parameter: ["invalid", "invalid", []],
+    expect_output: "error"
+  }
+];
+
+var testleaveGroup = [
+  {
+    test_description: "Cometchat leaveGroup valid  GUID",
+    method_name: "CometChat.leaveGroup",
+    parameter: ["supergroup"],
+    expect_output: "success"
+  },
+  {
+    test_description: "Cometchat leaveGroup Invalid  GUID",
+    method_name: "CometChat.leaveGroup",
+    parameter: ["random_group"],
+    expect_output: "error"
+  }
+];
+
+// GuestRequestBuilder Method
+describe("CometChat GuestRequestBuilder Method", function() {
+  this.timeout(0);
+
+  before(async function() {
+    if (!CometChat.isInitialized()) {
+      var appSetting = new CometChat.AppSettingsBuilder()
+        .subscribePresenceForAllUsers()
+        .setRegion("us")
+        .build();
+      await CometChat.init(valid_appId, appSetting);
+    }
+    expect(CometChat.isInitialized()).to.be.true;
+    let user = await CometChat.login(valid_uid, valid_api_key);
+    expect(user).to.be.instanceof(CometChat.AppUser);
+  });
+
+  testCaseGroupBuilder.map(test => {
+    it(test.test_description, function() {
+      var groupsRequest = cometchatBuilderRequest(test.parameter);
+
+      if (!groupsRequest.hasOwnProperty("fetchNext")) {
+        assert.isNotOk();
+      } else {
+        groupsRequest.fetchNext().then(
+          groupList => {
+            if(test.expect_output === "success"){
+                expect(groupList).to.be.exist;
+            }else{
+                throw new Error(`Expected Success but got Error`);
+            }
+          },
+          error => {
+            if(test.expect_output === "error"){
+                expect(error).to.be.an.instanceof(CometChat.CometChatException);
+            }else{
+                throw new Error(`Expected Error but got Success`);
+            }
+            
+          }
+        );
+      }
+    });
   });
 });
+
+function cometchatBuilderRequest(args) {
+  var groupRequest = new CometChat.GroupsRequestBuilder();
+
+  if (args.setLimit.flag) {
+    groupRequest = groupRequest.setLimit(args.setLimit.data);
+  }
+
+  if (args.setSearchKeyWord.flag) {
+    groupRequest = groupRequest.setSearchKeyword(args.setSearchKeyWord.data);
+  }
+
+  if (args.build.flag) {
+    groupRequest = groupRequest.build();
+    expect(groupRequest).to.be.instanceof(CometChat.GroupsRequest);
+  }
+  return groupRequest;
+}
+
+// GetGroup Method
+describe("CometChat GetGroup Method", function() {
+  this.timeout(0);
+
+  before(async function() {
+    if (!CometChat.isInitialized()) {
+      var appSetting = new CometChat.AppSettingsBuilder()
+        .subscribePresenceForAllUsers()
+        .setRegion("us")
+        .build();
+      await CometChat.init(valid_appId, appSetting);
+    }
+    expect(CometChat.isInitialized()).to.be.true;
+    let user = await CometChat.login(valid_uid, valid_api_key);
+    expect(user).to.be.instanceof(CometChat.AppUser);
+  });
+
+  testCaseGetGroup.map(test => {
+    it(test.test_description, function() {
+      CometChat.getGroup(test.parameter[0]).then(
+        group => {
+            if(test.expect_output === "success"){
+                expect(group).to.be.an.instanceof(CometChat.Group);
+            }else{
+                throw new Error(`Expected Success but got Error`);
+            }
+        },
+        error => {
+            if(test.expect_output === "error"){
+                expect(error).to.be.an.instanceof(CometChat.CometChatException);
+            }else{
+                throw new Error(`Expected Error but got Success`);
+            }
+        }
+      );
+    });
+  });
+});
+
+// Create Group Method
+describe("CometChat Create Group Method", function() {
+  this.timeout(0);
+
+  before(async function() {
+    if (!CometChat.isInitialized()) {
+      var appSetting = new CometChat.AppSettingsBuilder()
+        .subscribePresenceForAllUsers()
+        .setRegion("us")
+        .build();
+      await CometChat.init(valid_appId, appSetting);
+    }
+    expect(CometChat.isInitialized()).to.be.true;
+    let user = await CometChat.login(valid_uid, valid_api_key);
+    expect(user).to.be.instanceof(CometChat.AppUser);
+  });
+
+  testCaseCreateGroup.map(test => {
+    it(test.test_description, function() {
+      if (test.parameter[0] === "valid") {
+        test.parameter[0] = "superhero_" + Date.now();
+      }
+
+      var group = new CometChat.Group(...test.parameter);
+
+      CometChat.createGroup(group).then(
+        group => {
+          if (test.expect_output === "success") {
+            expect(group).to.be.an.instanceof(CometChat.Group);
+          } else {
+            throw new Error(`Expected Error but got Success`);
+          }
+        },
+        error => {
+          if (test.expect_output === "error") {
+            expect(error).to.be.an.instanceof(CometChat.CometChatException);
+          } else {
+            throw new Error(`Expected S but got E`);
+          }
+        }
+      );
+    });
+  });
+});
+
+// Join Group Method
+describe("CometChat Join Group Method", function() {
+  this.timeout(0);
+
+  before(async function() {
+    if (!CometChat.isInitialized()) {
+      var appSetting = new CometChat.AppSettingsBuilder()
+        .subscribePresenceForAllUsers()
+        .setRegion("us")
+        .build();
+      await CometChat.init(valid_appId, appSetting);
+    }
+    expect(CometChat.isInitialized()).to.be.true;
+    let user = await CometChat.login(valid_uid, valid_api_key);
+    expect(user).to.be.instanceof(CometChat.AppUser);
+  });
+
+  testCaseJoinGroup.map(test => {
+    it(test.test_description, function() {
+      if (test.parameter[0] === "valid") {
+        if (test.parameter[1] == "public") {
+          test.parameter[0] = valid_group;
+        }
+
+        if (test.parameter[1] == "private") {
+          test.parameter[0] = valid_group_private;
+        }
+      } else {
+        test.parameter[0] = "";
+      }
+
+      CometChat.getGroup(test.parameter[0]).then(
+        group => {
+          if (group.hasJoined) {
+            CometChat.leaveGroup(group.guid).then(
+              hasLeft => {
+                CometChat.joinGroup(...test.parameter).then(
+                  group => {
+                    if (test.expect_output === "success") {
+                      expect(group).to.be.an.instanceof(CometChat.Group);
+                    } else {
+                        throw new Error(`Expected Error but got Success`);
+                    }
+                  },
+
+                  error => {
+                    if (test.expect_output === "error") {
+                      expect(group).to.be.an.instanceof(CometChat.Group);
+                    } else {
+                        throw new Error(`Expected Sucess but got error`);
+                    }
+                  }
+                );
+              },
+              error => {
+                  //error
+              }
+            );
+          } else {
+            CometChat.joinGroup(...test.parameter).then(
+              group => {
+                if (test.expect_output === "success") {
+                  expect(group).to.be.an.instanceof(CometChat.Group);
+
+                  CometChat.leaveGroup(GUID).then(hasLeft => {
+                    expect(hasLeft).to.be.an.true;
+                  });
+                } else {
+                    throw new Error(`Expected Error but got Success`);
+                }
+              },
+
+              error => {
+                if (test.expect_output === "error") {
+                  expect(error).to.be.an.instanceof(
+                    CometChat.CometChatException
+                  );
+                } else {
+                    throw new Error(`Expected Success but got error`);
+                }
+              }
+            );
+          }
+        },
+        error => {
+          CometChat.joinGroup(...test.parameter).then(
+            group => {
+              if (test.expect_output === "success") {
+                expect(group).to.be.an.instanceof(CometChat.Group);
+                CometChat.leaveGroup(GUID).then(hasLeft => {
+                  expect(hasLeft).to.be.an.true;
+                });
+              } else {
+                throw new Error(`Expected Error but got Success`);
+              }
+            },
+
+            error => {
+              if (test.expect_output === "error") {
+                expect(error).to.be.an.instanceof(CometChat.CometChatException);
+              } else {
+                throw new Error(`Expected Success but got error`);
+              }
+            }
+          );
+        }
+      );
+    });
+  });
+});
+
+//Add Members to Group
+describe("CometChat AddMembersToGroup Method", function() {
+  this.timeout(0);
+
+  before(async function() {
+    if (!CometChat.isInitialized()) {
+      var appSetting = new CometChat.AppSettingsBuilder()
+        .subscribePresenceForAllUsers()
+        .setRegion("us")
+        .build();
+      await CometChat.init(valid_appId, appSetting);
+    }
+    expect(CometChat.isInitialized()).to.be.true;
+    let user = await CometChat.login(valid_uid, valid_api_key);
+    expect(user).to.be.instanceof(CometChat.AppUser);
+  });
+
+  testCaseAddMembersToGroup.map(test => {
+    it(test.test_description, function() {
+      let membersList = [];
+      let GUID;
+
+      if (test.parameter[1] === "valid") {
+        membersList = [
+          new CometChat.GroupMember(
+            "new1",
+            CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT
+          )
+        ];
+      }
+
+      if (test.parameter[0] == "valid") {
+        GUID = "superhero_1";
+      } else {
+        GUID = "valid_group";
+      }
+
+      CometChat.addMembersToGroup(GUID, membersList, []).then(
+        response => {
+          if (test.expect_output === "success") {
+            expect(response).to.exist;
+          } else {
+            throw new Error(`Expected Error but got Success`);
+          }
+        },
+        error => {
+          if (test.expect_output === "error") {
+            expect(error).to.be.an.instanceof(CometChat.CometChatException);
+          } else {
+            throw new Error(`Expected Success but got error`);
+          }
+        }
+      );
+    });
+  });
+});
+
+//leaveGroup
+// describe("CometChat Create Group Method", function() {
+//   this.timeout(0);
+
+//   before(async function() {
+//     if (!CometChat.isInitialized()) {
+//       var appSetting = new CometChat.AppSettingsBuilder()
+//         .subscribePresenceForAllUsers()
+//         .setRegion("us")
+//         .build();
+//       await CometChat.init(valid_appId, appSetting);
+//     }
+//     expect(CometChat.isInitialized()).to.be.true;
+//     let user = await CometChat.login(valid_uid, valid_api_key);
+//     expect(user).to.be.instanceof(CometChat.AppUser);
+//   });
+
+//   testleaveGroup.map(test => {
+//     it(test.test_description, function() {
+//       CometChat.leaveGroup(...test.parameter).then(
+//         hasLeft => {
+//           if (test.expect_output === "success") {
+//             expect(hasLeft).to.be.an.true;
+//           } else {
+//             throw new Error(`Expected Error but got Success`);
+//           }
+//         },
+//         error => {
+//           if (test.expect_output === "error") {
+//             expect(error).to.be.an.instanceof(CometChat.CometChatException);
+//           } else {
+//             throw new Error(`Expected Success but got error`);
+//           }
+//         }
+//       );
+//     });
+//   });
+// });

@@ -22,10 +22,10 @@ var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised).should();
 const assert = chai.assert;
 
-var appId = "247908b08eab7",
+var appId = "1066625ca50d45b",
   uid = "superhero1",
   invalidUid = "adxasd",
-  apiKey = "9c3607b6862f23477741472cbb0ac1beffa9a410",
+  apiKey = "6d84d553fa3a4c8a3f186fe6050c087197b3dc64",
   validLimit = 30,
   negativeLimit = -21,
   zeroLimit = 0,
@@ -34,14 +34,14 @@ var appId = "247908b08eab7",
   emptyKeyWord = '',
   emptyStatus = '',
   validStatus = 'online',
-  invalidStatus = 'status';
+  invalidStatus = 'status',
+  cometChatSettings = new CometChat.AppSettingsBuilder().subscribePresenceForAllUsers().setRegion(CometChat.AppSettings.REGION_EU).build();
 
 describe("User Test Cases", function() {
   this.timeout(0);
 
   before(async function() {
     if (!CometChat.isInitialized()) {
-      let cometChatSettings = new CometChat.AppSettingsBuilder().subscribePresenceForAllUsers().setRegion(CometChat.AppSettings.REGION_US).build();
       await CometChat.init(appId,cometChatSettings);
     }
     expect(CometChat.isInitialized()).to.be.true;
